@@ -1,0 +1,183 @@
+/* Các thành phần giao diện dùng lại nhiều nơi: nút, ô nhập, thẻ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  height: var(--touch-h);
+  padding: 0 var(--sp-4);
+  border-radius: var(--r-md);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--c-primary);
+  color: #fff;
+}
+.btn--primary:hover:not(:disabled) {
+  background: var(--c-primary-dark);
+}
+
+.btn--success {
+  background: var(--c-success);
+  color: #fff;
+}
+.btn--success:hover:not(:disabled) {
+  background: #15803d;
+}
+
+.btn--danger {
+  background: var(--c-danger);
+  color: #fff;
+}
+.btn--danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--c-text);
+  border: 1.5px solid var(--c-border);
+}
+.btn--ghost:hover:not(:disabled) {
+  background: var(--c-bg);
+  border-color: #cbd5e1;
+}
+
+.btn--sm {
+  height: 36px;
+  padding: 0 var(--sp-3);
+  font-size: var(--fs-sm);
+}
+
+.btn--icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: var(--r-sm);
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.btn--lg {
+  height: 56px;
+  font-size: var(--fs-md);
+}
+
+/* Ô nhập dùng chung */
+.input,
+.select {
+  width: 100%;
+  height: var(--touch-h);
+  padding: 0 var(--sp-3);
+  font-size: var(--fs-base);
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: #fff;
+  color: var(--c-text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input:focus,
+.select:focus {
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px var(--c-primary-light);
+}
+
+.input--error,
+.select--error {
+  border-color: var(--c-danger);
+}
+
+.input--error:focus,
+.select--error:focus {
+  box-shadow: 0 0 0 3px var(--c-danger-light);
+}
+
+.input[type='number'] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+textarea.input {
+  height: auto;
+  padding: var(--sp-3);
+  resize: vertical;
+  min-height: 84px;
+  line-height: 1.5;
+}
+
+.input:disabled {
+  background: var(--c-bg);
+  color: var(--c-text-muted);
+}
+
+/* Nhóm ô nhập kèm nhãn và chỗ báo lỗi */
+.form-field {
+  margin-bottom: var(--sp-4);
+}
+
+.form-field__label {
+  display: block;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--c-text-muted);
+  margin-bottom: var(--sp-2);
+}
+
+.form-field__required {
+  color: var(--c-danger);
+  margin-left: 2px;
+}
+
+.form-field__error {
+  display: block;
+  margin-top: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--c-danger);
+}
+
+.form-field__hint {
+  display: block;
+  margin-top: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-4);
+}
+
+/* Thanh công cụ phía trên bảng dữ liệu */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-4);
+}
+
+.toolbar__search {
+  flex: 1;
+  min-width: 220px;
+}
+
+.empty {
+  padding: var(--sp-6);
+  text-align: center;
+  color: var(--c-text-muted);
+}

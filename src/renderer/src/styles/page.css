@@ -139,3 +139,91 @@
   color: var(--c-text);
   margin-bottom: var(--sp-2);
 }
+
+/* ---------------- Bộ lọc khoảng thời gian ---------------- */
+.date-filter {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-4);
+}
+
+.date-filter__presets {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.date-filter__inputs {
+  display: flex;
+  gap: var(--sp-3);
+}
+
+.date-filter__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+  font-weight: 600;
+}
+
+.date-filter__field .input {
+  width: 170px;
+}
+
+/* ---------------- Phân trang ---------------- */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-top: 1px solid var(--c-border);
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+}
+
+.pagination__buttons {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+/* ---------------- Chi tiết hóa đơn ---------------- */
+.detail-meta {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-4);
+  margin-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.detail-meta__item span {
+  display: block;
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+  margin-bottom: 2px;
+}
+
+.detail-meta__item strong {
+  font-size: var(--fs-base);
+}
+
+.detail-total {
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--c-border);
+}
+
+.method-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--c-primary-light);
+  color: var(--c-primary-dark);
+}

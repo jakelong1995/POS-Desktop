@@ -101,3 +101,38 @@ export interface InvoiceItem {
   unit_price: number
   line_total: number
 }
+
+/* ------------------------------------------------------------------ */
+/* Giỏ hàng và thanh toán                                              */
+/* ------------------------------------------------------------------ */
+
+/** Một dòng trong giỏ hàng ở phía giao diện. */
+export interface CartLine {
+  product: ProductWithCategory
+  quantity: number
+}
+
+/**
+ * Dữ liệu renderer gửi xuống khi bấm thanh toán.
+ *
+ * Chú ý: CHỈ gửi product_id và số lượng, KHÔNG gửi đơn giá. Giá luôn được main
+ * process đọc lại từ database. Nếu tin vào giá do renderer gửi lên thì người
+ * dùng có thể mở DevTools sửa giá thành 0 đồng rồi "mua" hàng miễn phí.
+ */
+export interface CheckoutItem {
+  product_id: number
+  quantity: number
+}
+
+export interface CheckoutPayload {
+  items: CheckoutItem[]
+  discount: number
+  payment_method: PaymentMethod
+  customer_paid: number
+}
+
+/** Hóa đơn kèm chi tiết và tên thu ngân — dùng để in và xem lại. */
+export interface InvoiceWithItems extends Invoice {
+  cashier_name: string
+  items: InvoiceItem[]
+}

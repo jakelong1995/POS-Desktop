@@ -1,0 +1,100 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: grid;
+  place-items: center;
+  padding: var(--sp-5);
+  z-index: 100;
+  animation: modal-fade 0.12s ease-out;
+}
+
+@keyframes modal-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.modal {
+  width: min(var(--modal-w, 560px), 100%);
+  max-height: 90vh;
+  background: var(--c-surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.modal__title {
+  font-size: var(--fs-lg);
+}
+
+.modal__close {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-sm);
+  color: var(--c-text-muted);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.modal__close:hover {
+  background: var(--c-bg);
+  color: var(--c-text);
+}
+
+.modal__body {
+  padding: var(--sp-5);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  border-top: 1px solid var(--c-border);
+  background: #f8fafc;
+}
+
+/* Hộp thoại xác nhận */
+.confirm__body {
+  display: flex;
+  gap: var(--sp-4);
+  align-items: flex-start;
+}
+
+.confirm__icon {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+}
+
+.confirm__icon--danger {
+  background: var(--c-danger-light);
+  color: var(--c-danger);
+}
+
+.confirm__icon--warning {
+  background: var(--c-warning-light);
+  color: var(--c-warning);
+}
+
+.confirm__message {
+  line-height: 1.6;
+  padding-top: var(--sp-2);
+}

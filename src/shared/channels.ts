@@ -21,12 +21,15 @@ export const CHANNELS = {
 
   // Sản phẩm (Giai đoạn 4 & 5)
   PRODUCT_LIST: 'product:list',
+  PRODUCT_LIST_ALL: 'product:listAll',
   PRODUCT_SEARCH: 'product:search',
   PRODUCT_FIND_BY_BARCODE: 'product:findByBarcode',
   PRODUCT_CREATE: 'product:create',
   PRODUCT_UPDATE: 'product:update',
   PRODUCT_DELETE: 'product:delete',
+  PRODUCT_RESTORE: 'product:restore',
   PRODUCT_LOW_STOCK: 'product:lowStock',
+  PRODUCT_PICK_IMAGE: 'product:pickImage',
 
   // Hóa đơn (Giai đoạn 4 & 6)
   INVOICE_CHECKOUT: 'invoice:checkout',

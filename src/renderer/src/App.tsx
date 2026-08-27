@@ -2,9 +2,14 @@ import { useState } from 'react'
 import AppLayout from './components/AppLayout'
 import type { PageKey } from './components/AppLayout'
 import { AuthProvider, useAuth } from './hooks/useAuth'
+import { ToastProvider } from './hooks/useToast'
+import Categories from './pages/Categories'
+import Invoices from './pages/Invoices'
 import Login from './pages/Login'
-import Placeholder from './pages/Placeholder'
+import Products from './pages/Products'
+import Reports from './pages/Reports'
 import Sales from './pages/Sales'
+import './styles/ui.css'
 
 /**
  * Chọn trang cần hiển thị.
@@ -18,13 +23,13 @@ function renderPage(page: PageKey): React.JSX.Element {
     case 'sales':
       return <Sales />
     case 'products':
-      return <Placeholder title="Quản lý sản phẩm" phase="Giai đoạn 5" />
+      return <Products />
     case 'categories':
-      return <Placeholder title="Quản lý danh mục" phase="Giai đoạn 5" />
+      return <Categories />
     case 'invoices':
-      return <Placeholder title="Lịch sử hóa đơn" phase="Giai đoạn 6" />
+      return <Invoices />
     case 'reports':
-      return <Placeholder title="Báo cáo doanh thu" phase="Giai đoạn 7" />
+      return <Reports />
   }
 }
 
@@ -44,9 +49,11 @@ function Shell(): React.JSX.Element {
 
 function App(): React.JSX.Element {
   return (
-    <AuthProvider>
-      <Shell />
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <Shell />
+      </AuthProvider>
+    </ToastProvider>
   )
 }
 

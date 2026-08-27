@@ -4,7 +4,10 @@ import { CHANNELS } from '../shared/channels'
 import { closeDatabase, initDatabase } from './db/connection'
 import { registerAuthHandlers } from './ipc/auth'
 import { registerCatalogHandlers } from './ipc/catalog'
+import { registerInvoiceHandlers } from './ipc/invoices'
+import { registerReportHandlers } from './ipc/reports'
 import { registerHandler } from './ipc/registerHandler'
+import { registerImageProtocol, registerImageScheme } from './services/imageStore'
 
 /** Cửa sổ chính của ứng dụng. Giữ tham chiếu để tránh bị garbage-collect. */
 let mainWindow: BrowserWindow | null = null
@@ -83,12 +86,17 @@ function registerIpcHandlers(): void {
   registerHandler(CHANNELS.APP_VERSION, () => app.getVersion())
   registerAuthHandlers()
   registerCatalogHandlers()
+  registerInvoiceHandlers()
+  registerReportHandlers()
 }
 
 // Chỉ cho phép chạy MỘT phiên bản ứng dụng tại một thời điểm.
 // Nếu mở lần hai, hệ điều hành sẽ đưa cửa sổ đang có lên trước.
 // Điều này cực kỳ quan trọng vì hai tiến trình cùng ghi một file SQLite
 // có thể gây khoá file hoặc hỏng dữ liệu.
+// Khai báo giao thức pos-image:// phải diễn ra trước khi app sẵn sàng.
+registerImageScheme()
+
 const gotTheLock = app.requestSingleInstanceLock()
 
 if (!gotTheLock) {
@@ -118,6 +126,7 @@ if (!gotTheLock) {
       return
     }
 
+    registerImageProtocol()
     registerIpcHandlers()
     createWindow()
 

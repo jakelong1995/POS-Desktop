@@ -1,0 +1,55 @@
+# Tự động đóng gói file cài đặt .exe cho Windows.
+#
+# Vì sao phải dùng GitHub Actions? Dự án được phát triển trên macOS, mà muốn tạo
+# trình cài đặt NSIS cho Windows thì máy build phải chạy Windows (hoặc phải cài
+# Wine, cách này hay hỏng ở khâu biên dịch better-sqlite3). GitHub cho mượn máy
+# ảo Windows miễn phí nên đây là cách chắc ăn nhất.
+#
+# Cách chạy:
+#   - Vào tab Actions trên GitHub, chọn workflow này rồi bấm "Run workflow", HOẶC
+#   - Đẩy một tag bắt đầu bằng chữ v, ví dụ:  git tag v1.0.0 && git push --tags
+#
+# Build xong, tải file .exe ở mục Artifacts của lần chạy đó.
+
+name: Đóng gói Windows (.exe)
+
+on:
+  workflow_dispatch: # bấm nút chạy tay
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Lấy mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Cài đặt Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # npm ci sẽ tự chạy script postinstall, tức là:
+      #   1. install-electron            -> tải bản Electron cho Windows
+      #   2. electron-builder install-app-deps -> biên dịch lại better-sqlite3
+      #      cho đúng phiên bản ABI của Electron trên Windows
+      - name: Cài đặt thư viện
+        run: npm ci
+
+      - name: Kiểm tra kiểu dữ liệu TypeScript
+        run: npm run typecheck
+
+      - name: Đóng gói trình cài đặt
+        run: npm run build:win
+
+      - name: Tải lên file cài đặt
+        uses: actions/upload-artifact@v4
+        with:
+          name: POS-Desktop-Windows-Setup
+          path: release/*.exe
+          if-no-files-found: error
+          retention-days: 30
