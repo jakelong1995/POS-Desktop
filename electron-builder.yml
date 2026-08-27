@@ -1,0 +1,55 @@
+appId: com.posdesktop.app
+productName: POS Desktop
+copyright: Copyright © 2026 - Đồ án Lập trình trực quan
+
+directories:
+  buildResources: build
+  output: release
+
+# Chỉ đóng gói kết quả build trong out/ và các native module trong node_modules.
+# Toàn bộ mã nguồn TypeScript đã được bundle nên không cần đưa vào bản cài.
+files:
+  - out/**/*
+  - package.json
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!{.eslintrc,.prettierrc,.gitignore,README.md}'
+
+# better-sqlite3 chứa file nhị phân .node nên phải để ngoài asar,
+# nếu nén vào asar thì Node không nạp được thư viện native.
+asarUnpack:
+  - '**/*.node'
+  - node_modules/better-sqlite3/**
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: ${productName}-Setup-${version}.${ext}
+
+# Trình cài đặt cho Windows: cho phép người dùng chọn thư mục cài,
+# tạo shortcut ở Desktop và Start Menu.
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: POS Desktop
+  installerLanguages:
+    - vi_VN
+    - en_US
+  deleteAppDataOnUninstall: false
+
+mac:
+  target:
+    - dmg
+  category: public.app-category.business
+
+linux:
+  target:
+    - AppImage
+  category: Office

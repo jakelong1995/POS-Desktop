@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Content Security Policy: chỉ cho phép nạp tài nguyên từ chính ứng dụng.
+      Nhờ vậy dù có chuỗi HTML lạ lọt vào giao diện thì trình duyệt cũng
+      không tải và chạy script từ bên ngoài. ws: là để Vite hot-reload khi dev.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: file:; font-src 'self' data:; connect-src 'self' ws: http://localhost:*"
+    />
+    <title>Phần mềm bán hàng POS</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

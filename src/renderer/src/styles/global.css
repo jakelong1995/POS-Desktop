@@ -1,0 +1,51 @@
+@import './variables.css';
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  font-size: var(--fs-base);
+  color: var(--c-text);
+  background: var(--c-bg);
+  -webkit-font-smoothing: antialiased;
+  /* Không cho bôi đen chữ khi chạm kéo trên màn hình cảm ứng */
+  user-select: none;
+}
+
+/* Ô nhập liệu thì vẫn phải chọn được chữ để sửa */
+input,
+textarea {
+  user-select: text;
+  font-family: inherit;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Thanh cuộn mảnh, hợp với giao diện phần mềm bán hàng */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
