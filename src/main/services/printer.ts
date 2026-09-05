@@ -197,6 +197,33 @@ async function loadHtml(win: BrowserWindow, html: string): Promise<void> {
 }
 
 /**
+ * Mở một cửa sổ hiển thị hóa đơn khổ 80mm, kèm thanh công cụ In / Đóng.
+ *
+ * Cửa sổ PHẢI được hiển thị thật. Trên macOS hộp thoại in là một "sheet" trượt
+ * xuống từ thanh tiêu đề của cửa sổ đang in, cửa sổ ẩn thì sheet không có chỗ
+ * bám và người dùng bấm nút mà không thấy gì xảy ra.
+ */
+async function openReceiptWindow(
+  invoice: InvoiceWithItems,
+  parent: BrowserWindow | null,
+  title: string
+): Promise<BrowserWindow> {
+  const win = new BrowserWindow({
+    width: 380,
+    height: 720,
+    parent: parent ?? undefined,
+    title,
+    autoHideMenuBar: true,
+    backgroundColor: '#ffffff',
+    webPreferences: { contextIsolation: true, nodeIntegration: false }
+  })
+
+  await loadHtml(win, buildReceiptHtml(invoice, true))
+  win.show()
+  return win
+}
+
+/**
  * Mở cửa sổ XEM TRƯỚC hóa đơn.
  * Cửa sổ rộng đúng cỡ giấy 80mm để người dùng thấy trước bản in thật sự trông
  * như thế nào, kèm hai nút In và Đóng ở dưới cùng.
@@ -205,56 +232,34 @@ export async function previewInvoice(
   invoice: InvoiceWithItems,
   parent: BrowserWindow | null
 ): Promise<boolean> {
-  const win = new BrowserWindow({
-    width: 380,
-    height: 720,
-    parent: parent ?? undefined,
-    title: `Xem trước ${invoice.invoice_code}`,
-    autoHideMenuBar: true,
-    backgroundColor: '#ffffff',
-    webPreferences: { contextIsolation: true, nodeIntegration: false }
-  })
-
-  await loadHtml(win, buildReceiptHtml(invoice, true))
-  win.show()
+  await openReceiptWindow(invoice, parent, `Xem trước ${invoice.invoice_code}`)
   return true
 }
 
 /**
- * In thẳng ra máy in, không qua xem trước.
+ * In hóa đơn: mở đúng cửa sổ hóa đơn như khi xem trước, rồi tự bấm hộ nút In.
  *
- * Cửa sổ được tạo ẩn (show: false), in xong thì tự đóng. silent: false nghĩa là
- * vẫn hiện hộp thoại chọn máy in của hệ điều hành — an toàn hơn cho đồ án vì
- * máy chấm có thể không có máy in nhiệt nào cả.
+ * Vì sao không gọi `webContents.print()` từ main process nữa?
+ * Cách đó in từ một cửa sổ ẩn nên trên macOS hộp thoại in không bao giờ hiện ra
+ * — bấm nút xong không có phản hồi gì. Còn `window.print()` chạy bên trong
+ * chính trang hóa đơn đang hiển thị, đây đúng là việc mà nút "In hóa đơn" ở
+ * thanh công cụ cửa sổ xem trước vẫn làm và vẫn chạy tốt.
+ *
+ * Người dùng bấm Hủy trong hộp thoại thì cửa sổ vẫn còn đó với hai nút In và
+ * Đóng, muốn in lại chỉ việc bấm tiếp — không mất công lập lại hóa đơn.
  */
 export async function printInvoice(
   invoice: InvoiceWithItems,
   parent: BrowserWindow | null
 ): Promise<boolean> {
-  const win = new BrowserWindow({
-    show: false,
-    parent: parent ?? undefined,
-    webPreferences: { contextIsolation: true, nodeIntegration: false }
-  })
+  const win = await openReceiptWindow(invoice, parent, `In ${invoice.invoice_code}`)
 
-  await loadHtml(win, buildReceiptHtml(invoice, false))
+  // `openReceiptWindow` đã await loadURL nên trang nạp xong rồi; chỉ chờ thêm
+  // một nhịp cho cửa sổ hiện hẳn lên, tránh việc sheet in của macOS bung ra
+  // lúc cửa sổ còn đang vẽ dở.
+  setTimeout(() => {
+    if (!win.isDestroyed()) void win.webContents.executeJavaScript('window.print()')
+  }, 150)
 
-  return new Promise<boolean>((resolve) => {
-    win.webContents.print(
-      {
-        silent: false,
-        printBackground: true,
-        margins: { marginType: 'none' },
-        // Kích thước tính bằng micromet: 80mm = 80 000 µm
-        pageSize: { width: 80000, height: 200000 }
-      },
-      (success, failureReason) => {
-        if (!success && failureReason) {
-          console.warn('[print] Không in được:', failureReason)
-        }
-        if (!win.isDestroyed()) win.close()
-        resolve(success)
-      }
-    )
-  })
+  return true
 }
