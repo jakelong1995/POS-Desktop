@@ -83,15 +83,22 @@ function Reports(): React.JSX.Element {
    * sẽ nối thẳng qua những ngày nghỉ và cho cảm giác sai là ngày nào cũng bán.
    */
   const days = eachDay(range.from, range.to)
-  const revenueByDay = new Map(revenue.map((point) => [point.day, point.revenue]))
-  const revenueSeries = days.map((day) => revenueByDay.get(day) ?? 0)
+  const pointByDay = new Map(revenue.map((point) => [point.day, point]))
+  const grossSeries = days.map((day) => pointByDay.get(day)?.revenue ?? 0)
+  const refundSeries = days.map((day) => pointByDay.get(day)?.refund ?? 0)
+
+  // Đường biểu đồ vẽ doanh thu THUẦN (đã trừ hàng trả) vì đó mới là tiền thật
+  // thu về. Ngày nào trả nhiều hơn bán thì đường tụt xuống dưới 0 — nhìn hơi lạ
+  // nhưng đúng sự thật, và chính những ngày đó mới đáng để chủ cửa hàng để ý.
+  const netSeries = days.map((_, index) => grossSeries[index] - refundSeries[index])
+  const hasRefund = refundSeries.some((value) => value > 0)
 
   const lineData = {
     labels: days.map(shortDayLabel),
     datasets: [
       {
-        label: 'Doanh thu',
-        data: revenueSeries,
+        label: 'Doanh thu thuần',
+        data: netSeries,
         borderColor: '#2563eb',
         backgroundColor: 'rgba(37, 99, 235, 0.12)',
         borderWidth: 2,
@@ -99,7 +106,25 @@ function Reports(): React.JSX.Element {
         pointBackgroundColor: '#2563eb',
         tension: 0.3,
         fill: true
-      }
+      },
+      // Đường tiền hoàn chỉ hiện khi kỳ báo cáo thực sự có trả hàng — thêm một
+      // đường phẳng dính đáy vào mọi biểu đồ chỉ làm rối mắt.
+      ...(hasRefund
+        ? [
+            {
+              label: 'Tiền hoàn',
+              data: refundSeries,
+              borderColor: '#dc2626',
+              backgroundColor: 'rgba(220, 38, 38, 0.10)',
+              borderWidth: 2,
+              borderDash: [5, 4],
+              pointRadius: days.length > 45 ? 0 : 3,
+              pointBackgroundColor: '#dc2626',
+              tension: 0.3,
+              fill: true
+            }
+          ]
+        : [])
     ]
   }
 
@@ -107,16 +132,19 @@ function Reports(): React.JSX.Element {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: false },
+      legend: { display: hasRefund, position: 'bottom' },
       tooltip: {
         callbacks: {
-          label: (context) => ` Doanh thu: ${formatCurrency(context.parsed.y ?? 0)}`
+          label: (context) =>
+            ` ${context.dataset.label}: ${formatCurrency(context.parsed.y ?? 0)}`
         }
       }
     },
     scales: {
       y: {
-        beginAtZero: true,
+        // Không ép beginAtZero nữa: ngày hoàn nhiều hơn bán cho giá trị âm, ép
+        // về 0 sẽ cắt mất phần dưới trục và giấu đi đúng thông tin cần thấy.
+        beginAtZero: !netSeries.some((value) => value < 0),
         ticks: { callback: (value) => compactMoney(Number(value)) },
         grid: { color: '#e2e8f0' }
       },
@@ -160,7 +188,11 @@ function Reports(): React.JSX.Element {
     }
   }
 
-  const hasData = summary !== null && summary.invoice_count > 0
+  // Kỳ chỉ có phiếu trả mà không có hóa đơn nào (khách trả hàng mua từ kỳ
+  // trước) vẫn là kỳ CÓ dữ liệu — nếu chỉ xét invoice_count thì màn hình báo
+  // "chưa có dữ liệu" trong khi tiền đã thật sự rời két.
+  const hasData =
+    summary !== null && (summary.invoice_count > 0 || summary.refund_count > 0)
 
   return (
     <div className="page">
@@ -184,6 +216,23 @@ function Reports(): React.JSX.Element {
           </div>
         </div>
         <div className="stat">
+          <div className="stat__label">
+            Tiền hoàn{' '}
+            {(summary?.refund_count ?? 0) > 0 && (
+              <span className="stat__note">{formatNumber(summary?.refund_count ?? 0)} phiếu</span>
+            )}
+          </div>
+          <div className="stat__value stat__value--money stat__value--warning">
+            {formatCurrency(summary?.refund_total ?? 0)}
+          </div>
+        </div>
+        <div className="stat">
+          <div className="stat__label">Doanh thu thuần</div>
+          <div className="stat__value stat__value--money">
+            {formatCurrency(summary?.net_revenue ?? 0)}
+          </div>
+        </div>
+        <div className="stat">
           <div className="stat__label">Số hóa đơn</div>
           <div className="stat__value">{formatNumber(summary?.invoice_count ?? 0)}</div>
         </div>
@@ -199,7 +248,7 @@ function Reports(): React.JSX.Element {
         </div>
         <div className="stat">
           <div className="stat__label">
-            Lợi nhuận gộp <span className="stat__note" title="Tính theo giá vốn hiện tại của sản phẩm">ước tính</span>
+            Lợi nhuận gộp <span className="stat__note" title="Tính theo giá vốn hiện tại của sản phẩm, đã trừ hàng trả lại">ước tính</span>
           </div>
           <div className="stat__value stat__value--money stat__value--success">
             {formatCurrency(summary?.gross_profit ?? 0)}

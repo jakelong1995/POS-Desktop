@@ -29,6 +29,28 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   card: 'Thẻ'
 }
 
+/** Lý do trả hàng gợi ý sẵn — thu ngân bấm chọn thay vì gõ tay cho nhanh. */
+export const REFUND_REASONS = [
+  'Khách đổi ý',
+  'Hàng lỗi / hỏng',
+  'Sai sản phẩm',
+  'Hết hạn sử dụng',
+  'Thu ngân bấm nhầm'
+] as const
+
+/** Nhãn tiếng Việt của loại phiếu trả. */
+export const REFUND_KIND_LABELS: Record<'partial' | 'full', string> = {
+  partial: 'Trả một phần',
+  full: 'Trả toàn bộ'
+}
+
+/**
+ * Quá số ngày này thì không cho trả hàng nữa.
+ * Con số phải khớp với dòng "Hàng mua rồi vui lòng đổi trong 7 ngày" in ở cuối
+ * hóa đơn — nếu lệch nhau thì cửa hàng hứa một đằng, phần mềm chặn một nẻo.
+ */
+export const REFUND_WINDOW_DAYS = 7
+
 /** Dưới ngưỡng này thì sản phẩm bị coi là sắp hết hàng và hiện cảnh báo. */
 export const LOW_STOCK_THRESHOLD = 10
 

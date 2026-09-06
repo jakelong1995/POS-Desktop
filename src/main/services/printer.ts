@@ -1,6 +1,6 @@
 import { BrowserWindow } from 'electron'
-import { PAYMENT_METHOD_LABELS } from '../../shared/constants'
-import type { InvoiceWithItems } from '../../shared/types'
+import { PAYMENT_METHOD_LABELS, REFUND_KIND_LABELS } from '../../shared/constants'
+import type { InvoiceWithItems, RefundWithItems } from '../../shared/types'
 
 /** Thông tin cửa hàng in trên đầu hóa đơn. */
 const SHOP = {
@@ -191,6 +191,168 @@ export function buildReceiptHtml(invoice: InvoiceWithItems, withToolbar = false)
 </html>`
 }
 
+/**
+ * Dựng HTML PHIẾU TRẢ HÀNG, cùng khổ 80mm với hóa đơn.
+ *
+ * Phiếu trả cố tình KHÔNG giống hệt hóa đơn: tiêu đề khác, có dòng "Số HĐ gốc"
+ * để đối chiếu, và số tiền ghi kèm dấu trừ. Người cầm tờ giấy phải phân biệt
+ * được ngay đây là chứng từ hoàn tiền chứ không phải một lần mua mới — nếu hai
+ * mẫu giống nhau, phiếu trả rất dễ bị đếm nhầm thành doanh thu khi cộng sổ tay.
+ */
+export function buildRefundSlipHtml(refund: RefundWithItems, withToolbar = false): string {
+  const itemRows = refund.items
+    .map(
+      (item) => `
+      <tr class="item">
+        <td colspan="3" class="item-name">${escapeHtml(item.product_name)}</td>
+      </tr>
+      <tr class="item">
+        <td class="qty">${item.quantity} x ${money(item.unit_price)}</td>
+        <td></td>
+        <td class="amount">${money(item.line_total)}</td>
+      </tr>`
+    )
+    .join('')
+
+  const toolbar = withToolbar
+    ? `<div class="toolbar no-print">
+         <button id="btn-print" type="button">In phiếu trả</button>
+         <button id="btn-close" type="button" class="secondary">Đóng</button>
+       </div>
+       <script>
+         document.getElementById('btn-print').addEventListener('click', () => window.print());
+         document.getElementById('btn-close').addEventListener('click', () => window.close());
+       </script>`
+    : ''
+
+  return `<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>${escapeHtml(refund.refund_code)}</title>
+<style>
+  @page { size: 80mm auto; margin: 0; }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 80mm;
+    margin: 0 auto;
+    padding: 4mm;
+    font-family: "Courier New", Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.45;
+    color: #000;
+    background: #fff;
+  }
+
+  .center { text-align: center; }
+  .bold   { font-weight: 700; }
+
+  .shop-name { font-size: 15px; font-weight: 700; margin-bottom: 2mm; }
+  .shop-info { font-size: 11px; line-height: 1.4; }
+
+  /* Tiêu đề đóng khung để phân biệt rõ với hóa đơn bán hàng */
+  .title {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 3mm 0 1mm;
+    padding: 1mm 0;
+    border: 1px solid #000;
+  }
+
+  .divider { border-top: 1px dashed #000; margin: 2mm 0; }
+
+  .meta { font-size: 11px; }
+  .meta div { display: flex; justify-content: space-between; }
+
+  table { width: 100%; border-collapse: collapse; }
+  .item-name { padding-top: 1.5mm; font-weight: 700; }
+  .qty    { font-size: 11px; }
+  .amount { text-align: right; white-space: nowrap; }
+
+  .totals div { display: flex; justify-content: space-between; margin-top: 1mm; }
+  .grand {
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: 2mm;
+    padding-top: 2mm;
+    border-top: 1px solid #000;
+  }
+
+  .note { font-size: 11px; margin-top: 2mm; }
+
+  /* Chỗ khách ký nhận tiền — chứng từ hoàn tiền cần có chữ ký đối chiếu */
+  .sign { display: flex; gap: 4mm; margin-top: 6mm; font-size: 11px; }
+  .sign div { flex: 1; text-align: center; }
+  .sign .line { margin-top: 12mm; border-top: 1px solid #000; padding-top: 1mm; }
+
+  .footer { font-size: 11px; margin-top: 3mm; }
+
+  .toolbar {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    display: flex; gap: 8px; padding: 10px;
+    background: #f1f5f9; border-top: 1px solid #cbd5e1;
+    font-family: system-ui, sans-serif;
+  }
+  .toolbar button {
+    flex: 1; height: 40px; border: none; border-radius: 8px;
+    background: #2563eb; color: #fff; font-size: 14px;
+    font-weight: 600; cursor: pointer;
+  }
+  .toolbar button.secondary { background: #e2e8f0; color: #0f172a; }
+  ${withToolbar ? 'body { padding-bottom: 70px; }' : ''}
+
+  @media print {
+    .no-print { display: none !important; }
+    body { padding-bottom: 4mm; }
+  }
+</style>
+</head>
+<body>
+  <div class="center">
+    <div class="shop-name">${escapeHtml(SHOP.name)}</div>
+    <div class="shop-info">${escapeHtml(SHOP.address)}</div>
+    <div class="shop-info">ĐT: ${escapeHtml(SHOP.phone)}</div>
+    <div class="title">PHIẾU TRẢ HÀNG</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="meta">
+    <div><span>Số phiếu:</span><span class="bold">${escapeHtml(refund.refund_code)}</span></div>
+    <div><span>Số HĐ gốc:</span><span class="bold">${escapeHtml(refund.invoice_code)}</span></div>
+    <div><span>Ngày:</span><span>${formatDateTime(refund.created_at)}</span></div>
+    <div><span>Người lập:</span><span>${escapeHtml(refund.cashier_name)}</span></div>
+    <div><span>Hình thức:</span><span>${escapeHtml(REFUND_KIND_LABELS[refund.kind])}</span></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <table>${itemRows}</table>
+
+  <div class="divider"></div>
+
+  <div class="totals">
+    <div class="grand"><span>HOÀN LẠI KHÁCH</span><span>${money(refund.total)} đ</span></div>
+  </div>
+
+  ${refund.reason ? `<div class="note">Lý do: ${escapeHtml(refund.reason)}</div>` : ''}
+  ${refund.restock ? '' : '<div class="note">Hàng không nhập lại kho</div>'}
+
+  <div class="sign">
+    <div>Khách hàng<div class="line">Ký, ghi rõ họ tên</div></div>
+    <div>Người lập phiếu<div class="line">Ký, ghi rõ họ tên</div></div>
+  </div>
+
+  <div class="center footer">
+    <div>Vui lòng giữ phiếu này để đối chiếu khi cần</div>
+  </div>
+  ${toolbar}
+</body>
+</html>`
+}
+
 /** Nạp chuỗi HTML vào một cửa sổ bằng data URL, chờ vẽ xong mới trả về. */
 async function loadHtml(win: BrowserWindow, html: string): Promise<void> {
   await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
@@ -204,7 +366,7 @@ async function loadHtml(win: BrowserWindow, html: string): Promise<void> {
  * bám và người dùng bấm nút mà không thấy gì xảy ra.
  */
 async function openReceiptWindow(
-  invoice: InvoiceWithItems,
+  html: string,
   parent: BrowserWindow | null,
   title: string
 ): Promise<BrowserWindow> {
@@ -218,9 +380,33 @@ async function openReceiptWindow(
     webPreferences: { contextIsolation: true, nodeIntegration: false }
   })
 
-  await loadHtml(win, buildReceiptHtml(invoice, true))
+  await loadHtml(win, html)
   win.show()
   return win
+}
+
+/**
+ * Mở cửa sổ rồi tự bấm hộ nút In.
+ *
+ * Tách riêng vì hóa đơn và phiếu trả in y hệt nhau, chỉ khác nội dung HTML.
+ * Người dùng bấm Hủy trong hộp thoại in thì cửa sổ vẫn còn với hai nút In và
+ * Đóng, muốn in lại chỉ việc bấm tiếp.
+ */
+async function openAndPrint(
+  html: string,
+  parent: BrowserWindow | null,
+  title: string
+): Promise<boolean> {
+  const win = await openReceiptWindow(html, parent, title)
+
+  // `openReceiptWindow` đã await loadURL nên trang nạp xong rồi; chỉ chờ thêm
+  // một nhịp cho cửa sổ hiện hẳn lên, tránh việc sheet in của macOS bung ra
+  // lúc cửa sổ còn đang vẽ dở.
+  setTimeout(() => {
+    if (!win.isDestroyed()) void win.webContents.executeJavaScript('window.print()')
+  }, 150)
+
+  return true
 }
 
 /**
@@ -232,7 +418,11 @@ export async function previewInvoice(
   invoice: InvoiceWithItems,
   parent: BrowserWindow | null
 ): Promise<boolean> {
-  await openReceiptWindow(invoice, parent, `Xem trước ${invoice.invoice_code}`)
+  await openReceiptWindow(
+    buildReceiptHtml(invoice, true),
+    parent,
+    `Xem trước ${invoice.invoice_code}`
+  )
   return true
 }
 
@@ -252,14 +442,26 @@ export async function printInvoice(
   invoice: InvoiceWithItems,
   parent: BrowserWindow | null
 ): Promise<boolean> {
-  const win = await openReceiptWindow(invoice, parent, `In ${invoice.invoice_code}`)
+  return openAndPrint(buildReceiptHtml(invoice, true), parent, `In ${invoice.invoice_code}`)
+}
 
-  // `openReceiptWindow` đã await loadURL nên trang nạp xong rồi; chỉ chờ thêm
-  // một nhịp cho cửa sổ hiện hẳn lên, tránh việc sheet in của macOS bung ra
-  // lúc cửa sổ còn đang vẽ dở.
-  setTimeout(() => {
-    if (!win.isDestroyed()) void win.webContents.executeJavaScript('window.print()')
-  }, 150)
-
+/** Mở cửa sổ xem trước PHIẾU TRẢ HÀNG khổ 80mm. */
+export async function previewRefund(
+  refund: RefundWithItems,
+  parent: BrowserWindow | null
+): Promise<boolean> {
+  await openReceiptWindow(
+    buildRefundSlipHtml(refund, true),
+    parent,
+    `Xem trước ${refund.refund_code}`
+  )
   return true
+}
+
+/** In phiếu trả hàng. */
+export async function printRefund(
+  refund: RefundWithItems,
+  parent: BrowserWindow | null
+): Promise<boolean> {
+  return openAndPrint(buildRefundSlipHtml(refund, true), parent, `In ${refund.refund_code}`)
 }

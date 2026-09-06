@@ -8,13 +8,18 @@ import type {
   LoginPayload,
   Product,
   ProductWithCategory,
-  PublicUser
+  PublicUser,
+  RefundPayload,
+  RefundWithItems,
+  RefundableInvoice
 } from '../shared/types'
 import type { CategoryInput, ProductInput } from '../shared/validation'
 import type {
   DateRange,
   InvoiceListFilter,
   InvoiceListResult,
+  RefundListFilter,
+  RefundListResult,
   ReportSummary,
   RevenuePoint,
   TopProduct
@@ -79,9 +84,23 @@ const api = {
       invoke<InvoiceListResult>(CHANNELS.INVOICE_LIST, filter)
   },
 
+  refund: {
+    /** Lấy dữ liệu dựng form trả hàng: dòng nào còn trả được, đơn giá hoàn bao nhiêu. */
+    prepare: (invoiceId: number) =>
+      invoke<RefundableInvoice>(CHANNELS.REFUND_PREPARE, invoiceId),
+    create: (payload: RefundPayload) =>
+      invoke<RefundWithItems>(CHANNELS.REFUND_CREATE, payload),
+    detail: (id: number) => invoke<RefundWithItems>(CHANNELS.REFUND_DETAIL, id),
+    list: (filter: RefundListFilter) =>
+      invoke<RefundListResult>(CHANNELS.REFUND_LIST, filter)
+  },
+
   print: {
     preview: (invoiceId: number) => invoke<boolean>(CHANNELS.PRINT_PREVIEW, invoiceId),
-    invoice: (invoiceId: number) => invoke<boolean>(CHANNELS.PRINT_INVOICE, invoiceId)
+    invoice: (invoiceId: number) => invoke<boolean>(CHANNELS.PRINT_INVOICE, invoiceId),
+    refundPreview: (refundId: number) =>
+      invoke<boolean>(CHANNELS.PRINT_REFUND_PREVIEW, refundId),
+    refund: (refundId: number) => invoke<boolean>(CHANNELS.PRINT_REFUND, refundId)
   },
 
   report: {

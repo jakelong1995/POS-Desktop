@@ -101,11 +101,16 @@
   grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
   gap: var(--sp-3);
   align-content: start;
+  /* Thẻ cao cố định nên không cho ô lưới kéo giãn thẻ theo hàng */
+  align-items: start;
   padding-bottom: var(--sp-4);
 }
 
 /* ---------------- Thẻ sản phẩm ---------------- */
 .product-card {
+  /* Chiều cao cố định: 96 (ảnh) + 24 (padding) + 35 (tên 2 dòng) + 8 (khoảng cách)
+     + 15 (SKU) + 24 (giá) + 3 (viền) — làm tròn lên cho thoáng */
+  height: 208px;
   display: flex;
   flex-direction: column;
   background: var(--c-surface);
@@ -132,6 +137,7 @@
 
 .product-card__thumb {
   height: 96px;
+  flex: none;
   background: var(--c-bg);
   display: grid;
   place-items: center;
@@ -174,6 +180,8 @@
   flex-direction: column;
   gap: var(--sp-1);
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .product-card__name {
@@ -184,7 +192,8 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 2.7em;
+  height: 2.7em;
+  flex: none;
 }
 
 .product-card__price {

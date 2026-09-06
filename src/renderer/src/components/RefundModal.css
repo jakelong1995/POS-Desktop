@@ -1,0 +1,145 @@
+/* ---------------- Hộp thoại trả hàng ---------------- */
+
+/*
+  Tổng tiền hoàn được đẩy về mép trái của thanh nút bằng margin-right: auto.
+  Đặt số tiền cạnh đúng cái nút sẽ trừ tiền là có chủ ý: thu ngân nhìn thấy con
+  số ngay tại nơi tay đang bấm, không phải liếc lên đầu hộp thoại để kiểm tra.
+*/
+.refund-footer__total {
+  margin-right: auto;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+
+.refund-footer__total span {
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+}
+
+.refund-footer__total strong {
+  font-size: var(--fs-lg);
+  color: var(--c-danger);
+}
+
+.refund-actions {
+  display: flex;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+
+/* Ô số lượng hẹp, canh phải cho thẳng cột với các số tiền bên cạnh */
+.refund-qty {
+  width: 84px;
+  text-align: right;
+  margin-left: auto;
+}
+
+.refund-note {
+  margin-top: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--c-primary-light);
+  color: var(--c-primary-dark);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+.refund-note--warn {
+  background: var(--c-warning-light);
+  color: var(--c-warning);
+}
+
+.refund-form {
+  margin-top: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.refund-check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  cursor: pointer;
+}
+
+.refund-check input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--c-primary);
+}
+
+.refund-check span {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fs-base);
+  font-weight: 600;
+}
+
+.refund-check em {
+  font-style: normal;
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--c-text-muted);
+}
+
+.refund-history {
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--c-border);
+}
+
+.refund-history h3 {
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+  margin-bottom: var(--sp-2);
+}
+
+.refund-history__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  font-size: var(--fs-sm);
+  border-bottom: 1px dashed var(--c-border);
+}
+
+.refund-history__row:last-child {
+  border-bottom: none;
+}
+
+.refund-history__row strong {
+  color: var(--c-danger);
+}
+
+/* ---------------- Dấu hiệu đã trả hàng trên danh sách hóa đơn ---------------- */
+
+/*
+  Hóa đơn đã trả hàng phải nhận ra được ngay từ danh sách, không cần mở chi tiết:
+  người quản lý dò sổ cuối ngày cần thấy ngay hóa đơn nào không còn nguyên giá trị.
+*/
+.refund-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--c-warning-light);
+  color: var(--c-warning);
+  white-space: nowrap;
+}
+
+.refund-badge--full {
+  background: var(--c-danger-light);
+  color: var(--c-danger);
+}
+
+/* Số tiền đã hoàn hiện mờ ngay dưới tổng tiền, kèm dấu trừ cho rõ chiều */
+.cell-refunded {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-danger);
+}

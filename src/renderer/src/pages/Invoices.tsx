@@ -5,6 +5,7 @@ import type { InvoiceWithItems } from '@shared/types'
 import DateRangeFilter from '../components/DateRangeFilter'
 import type { Range } from '../components/DateRangeFilter'
 import Modal from '../components/Modal'
+import RefundModal from '../components/RefundModal'
 import { useToast } from '../hooks/useToast'
 import { daysAgo, today } from '../utils/date'
 import { formatCurrency, formatDateTime, formatNumber } from '../utils/format'
@@ -28,12 +29,16 @@ function Invoices(): React.JSX.Element {
   const [result, setResult] = useState<InvoiceListResult>({
     rows: [],
     total: 0,
-    totalRevenue: 0
+    totalRevenue: 0,
+    totalRefund: 0
   })
   const [loading, setLoading] = useState(true)
 
   const [detail, setDetail] = useState<InvoiceWithItems | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
+
+  /** id hóa đơn đang trả hàng; null nghĩa là hộp thoại trả hàng đang đóng. */
+  const [refundingId, setRefundingId] = useState<number | null>(null)
 
   const load = useCallback(async (): Promise<void> => {
     setLoading(true)
@@ -94,8 +99,15 @@ function Invoices(): React.JSX.Element {
         <div>
           <h1 className="page__title">Lịch sử hóa đơn</h1>
           <p className="page__subtitle">
-            {formatNumber(result.total)} hóa đơn · Tổng doanh thu{' '}
+            {formatNumber(result.total)} hóa đơn · Doanh thu{' '}
             {formatCurrency(result.totalRevenue)}
+            {result.totalRefund > 0 && (
+              <>
+                {' '}
+                · Đã hoàn {formatCurrency(result.totalRefund)} · Thực thu{' '}
+                <strong>{formatCurrency(result.totalRevenue - result.totalRefund)}</strong>
+              </>
+            )}
           </p>
         </div>
       </div>
@@ -124,7 +136,7 @@ function Invoices(): React.JSX.Element {
                 <th className="num">Số mặt hàng</th>
                 <th>Thanh toán</th>
                 <th className="num">Tổng tiền</th>
-                <th style={{ width: 210 }}>Thao tác</th>
+                <th style={{ width: 290 }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -144,7 +156,16 @@ function Invoices(): React.JSX.Element {
                 result.rows.map((row) => (
                   <tr key={row.id}>
                     <td>
-                      <strong>{row.invoice_code}</strong>
+                      <strong>{row.invoice_code}</strong>{' '}
+                      {row.refunded_total > 0 && (
+                        <span
+                          className={`refund-badge ${
+                            row.refunded_total >= row.total ? 'refund-badge--full' : ''
+                          }`}
+                        >
+                          {row.refunded_total >= row.total ? 'Đã trả toàn bộ' : 'Đã trả một phần'}
+                        </span>
+                      )}
                     </td>
                     <td>{formatDateTime(row.created_at.replace(' ', 'T'))}</td>
                     <td>{row.cashier_name}</td>
@@ -156,6 +177,11 @@ function Invoices(): React.JSX.Element {
                     </td>
                     <td className="num">
                       <strong>{formatCurrency(row.total)}</strong>
+                      {row.refunded_total > 0 && (
+                        <span className="cell-refunded">
+                          −{formatCurrency(row.refunded_total)}
+                        </span>
+                      )}
                     </td>
                     <td>
                       <div className="cell-actions">
@@ -180,6 +206,19 @@ function Invoices(): React.JSX.Element {
                           onClick={() => void handlePrint(row.id)}
                         >
                           In lại
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn--ghost btn--sm btn--danger-text"
+                          onClick={() => setRefundingId(row.id)}
+                          disabled={row.refunded_total >= row.total}
+                          title={
+                            row.refunded_total >= row.total
+                              ? 'Hóa đơn đã được hoàn hết'
+                              : 'Lập phiếu trả hàng cho hóa đơn này'
+                          }
+                        >
+                          Trả hàng
                         </button>
                       </div>
                     </td>
@@ -226,6 +265,19 @@ function Invoices(): React.JSX.Element {
           <>
             <button type="button" className="btn btn--ghost" onClick={() => setDetail(null)}>
               Đóng
+            </button>
+            <button
+              type="button"
+              className="btn btn--ghost btn--danger-text"
+              onClick={() => {
+                // Đóng chi tiết trước khi mở phiếu trả: hai hộp thoại chồng nhau
+                // thì phím ESC sẽ đóng cả hai cùng lúc, rất dễ mất dữ liệu đang nhập.
+                const id = detail?.id ?? null
+                setDetail(null)
+                setRefundingId(id)
+              }}
+            >
+              Trả hàng
             </button>
             <button
               type="button"
@@ -319,6 +371,17 @@ function Invoices(): React.JSX.Element {
           </>
         )}
       </Modal>
+
+      <RefundModal
+        invoiceId={refundingId}
+        onClose={() => setRefundingId(null)}
+        onDone={(refund) => {
+          // Tải lại danh sách để cột "đã hoàn" và huy hiệu cập nhật ngay,
+          // rồi mở luôn bản xem trước phiếu trả cho khách ký nhận.
+          void load()
+          void window.api.print.refundPreview(refund.id)
+        }}
+      />
     </div>
   )
 }

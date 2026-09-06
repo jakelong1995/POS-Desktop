@@ -169,9 +169,16 @@ export function list(filter: InvoiceListFilter): InvoiceListResult {
   const limit = Math.min(Math.max(filter.limit ?? 25, 1), 200)
   const offset = Math.max(filter.offset ?? 0, 0)
 
+  // Tiền hoàn được cộng bằng truy vấn con thay vì JOIN thẳng sang bảng refunds:
+  // một hóa đơn có thể có nhiều phiếu trả, JOIN sẽ nhân đôi dòng hóa đơn và làm
+  // SUM(i.total) đếm lặp — doanh thu báo cáo sẽ phồng lên theo số lần trả hàng.
   const summary = db
-    .prepare<unknown[], { total: number; revenue: number | null }>(
-      `SELECT COUNT(*) AS total, SUM(i.total) AS revenue FROM invoices i ${clause}`
+    .prepare<unknown[], { total: number; revenue: number | null; refund: number | null }>(
+      `SELECT COUNT(*)      AS total,
+              SUM(i.total)  AS revenue,
+              SUM((SELECT COALESCE(SUM(r.total), 0)
+                   FROM refunds r WHERE r.invoice_id = i.id)) AS refund
+       FROM invoices i ${clause}`
     )
     .get(...params)
 
@@ -179,7 +186,9 @@ export function list(filter: InvoiceListFilter): InvoiceListResult {
     .prepare<unknown[], InvoiceListRow>(
       `SELECT i.*,
               u.full_name AS cashier_name,
-              (SELECT COUNT(*) FROM invoice_items it WHERE it.invoice_id = i.id) AS item_count
+              (SELECT COUNT(*) FROM invoice_items it WHERE it.invoice_id = i.id) AS item_count,
+              (SELECT COALESCE(SUM(r.total), 0)
+               FROM refunds r WHERE r.invoice_id = i.id) AS refunded_total
        FROM invoices i
        JOIN users u ON u.id = i.user_id
        ${clause}
@@ -191,6 +200,7 @@ export function list(filter: InvoiceListFilter): InvoiceListResult {
   return {
     rows,
     total: summary?.total ?? 0,
-    totalRevenue: summary?.revenue ?? 0
+    totalRevenue: summary?.revenue ?? 0,
+    totalRefund: summary?.refund ?? 0
   }
 }

@@ -36,9 +36,17 @@ export const CHANNELS = {
   INVOICE_LIST: 'invoice:list',
   INVOICE_DETAIL: 'invoice:detail',
 
+  // Trả hàng / hoàn tiền
+  REFUND_PREPARE: 'refund:prepare',
+  REFUND_CREATE: 'refund:create',
+  REFUND_LIST: 'refund:list',
+  REFUND_DETAIL: 'refund:detail',
+
   // In ấn (Giai đoạn 6)
   PRINT_PREVIEW: 'print:preview',
   PRINT_INVOICE: 'print:invoice',
+  PRINT_REFUND_PREVIEW: 'print:refundPreview',
+  PRINT_REFUND: 'print:refund',
 
   // Báo cáo (Giai đoạn 7)
   REPORT_REVENUE_BY_DAY: 'report:revenueByDay',

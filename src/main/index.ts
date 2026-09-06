@@ -5,6 +5,7 @@ import { closeDatabase, initDatabase } from './db/connection'
 import { registerAuthHandlers } from './ipc/auth'
 import { registerCatalogHandlers } from './ipc/catalog'
 import { registerInvoiceHandlers } from './ipc/invoices'
+import { registerRefundHandlers } from './ipc/refunds'
 import { registerReportHandlers } from './ipc/reports'
 import { registerHandler } from './ipc/registerHandler'
 import { registerImageProtocol, registerImageScheme } from './services/imageStore'
@@ -87,6 +88,7 @@ function registerIpcHandlers(): void {
   registerAuthHandlers()
   registerCatalogHandlers()
   registerInvoiceHandlers()
+  registerRefundHandlers()
   registerReportHandlers()
 }
 
